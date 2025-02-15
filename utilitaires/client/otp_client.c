@@ -6,11 +6,10 @@
 #define DEVICE "/dev/otp0"
 #define OTP_LEN 6
 
-int read_device()
+char *read_device(char *buffer)
 {
     int fd;
     ssize_t bytes_read;
-    char buffer[256];
 
     fd = open(DEVICE, O_RDONLY);
     if (fd == -1) {
@@ -26,7 +25,6 @@ int read_device()
     }
 
     buffer[bytes_read] = '\0';
-    printf("%s\n", buffer);
 
     close(fd);
     return 0;
@@ -34,7 +32,24 @@ int read_device()
 
 int main(int argc, char *argv[])
 {
+    char buffer[256];
+    char *pass;
+
+    if (argc != 2)
+        return 1;
+
     if (read_device() == -1)
         return 1;
-    return 0;
+
+    pass = strtok(buffer, " \t");
+    for (int i; pass[i]; i++) {
+        if (!strncmp(pass[i], argv[1])) {
+            free(pass);
+            printf("Correct !\n");
+            return 0;
+        }
+    }
+    free(pass);
+    printf("Wrong !\n");
+    return 1;
 }

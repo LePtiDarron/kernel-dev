@@ -21,10 +21,6 @@ int main(int argc, char *argv[]) {
         print_help();
         return 1;
     }
-    if (strlen(argv[1]) < 3) {
-        print_help();
-        return 1;
-    }
 
     char command[64];
 
@@ -41,6 +37,10 @@ int main(int argc, char *argv[]) {
         snprintf(command, sizeof(command), "-PW %s\n", argv[2]);
         printf("Deleting password %s ...\n", argv[2]);
     } else if (!strcmp(argv[1], "SET")) {
+        // Supprimer un mot de passe
+        snprintf(command, sizeof(command), "SET %s\n", argv[2]);
+        printf("Setting method to %s ...\n", argv[2]);
+    }  else if (!strcmp(argv[1], "SET")) {
         // Supprimer un mot de passe
         snprintf(command, sizeof(command), "SET %s\n", argv[2]);
         printf("Setting method to %s ...\n", argv[2]);
