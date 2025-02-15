@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
@@ -6,7 +7,7 @@
 #define DEVICE "/dev/otp0"
 #define OTP_LEN 6
 
-char *read_device(char *buffer)
+int read_device(char *buffer)
 {
     int fd;
     ssize_t bytes_read;
@@ -32,24 +33,23 @@ char *read_device(char *buffer)
 
 int main(int argc, char *argv[])
 {
-    char buffer[256];
+    char buffer[700];
     char *pass;
 
     if (argc != 2)
         return 1;
 
-    if (read_device() == -1)
+    if (read_device(buffer) == -1)
         return 1;
 
-    pass = strtok(buffer, " \t");
-    for (int i; pass[i]; i++) {
-        if (!strncmp(pass[i], argv[1])) {
-            free(pass);
+    pass = strtok(buffer, "\n");
+    for (int i; pass; i++) {
+        if (!strcmp(pass, argv[1])) {
             printf("Correct !\n");
             return 0;
         }
+        pass = strtok(NULL, "\n");
     }
-    free(pass);
     printf("Wrong !\n");
     return 1;
 }

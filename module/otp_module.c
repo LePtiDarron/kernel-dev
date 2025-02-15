@@ -155,13 +155,17 @@ int delete_password(const char *password) {
 static ssize_t otp_read(struct file *file, char __user *buf, size_t len, loff_t *offset)
 {
     char passwords[700] = "\0";
-    char otp_code[16];
+    char otp_code[OTP_LEN + 1];
+
+    if (*offset > 0)
+        return 0;
 
     if (otp_config.method == 0) {
         // Générer et envoyer l'OTP
         if (generate_otp(otp_code))
             return -EFAULT;
-        if (copy_to_user(buf, otp_code, OTP_LEN)) 
+        otp_code[OTP_LEN] = '\0';
+        if (copy_to_user(buf, otp_code, OTP_LEN + 1)) 
             return -EFAULT;
         *offset += OTP_LEN;
         return OTP_LEN;
@@ -171,6 +175,7 @@ static ssize_t otp_read(struct file *file, char __user *buf, size_t len, loff_t 
             if (otp_config.passwords[i][0] == '\0') break;
             strcat(passwords, otp_config.passwords[i]);
         }
+        *offset += strlen(passwords);
         if (copy_to_user(buf, passwords, strlen(passwords))) 
             return -EFAULT;
         return strlen(passwords);
@@ -217,12 +222,12 @@ static ssize_t otp_write(struct file *file, const char __user *buf, size_t len, 
     } else if (!strncmp(user_input, cmd_method, 4)) {
         // Changer la methode
         if (user_input[4] == '0') {
-            pr_info("Method set to otp");
+            pr_info("OTP Method set to otp");
             otp_config.method = 0;
             return 0;
         }
         if (user_input[4] == '1') {
-            pr_info("Method set to passwords");
+            pr_info("OTP Method set to passwords");
             otp_config.method = 1;
             return 0;
         }
@@ -251,7 +256,7 @@ static int __init otp_init(void)
     
     // Allouer un numéro de périphérique
     if (alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME) < 0) {
-        pr_err("Cannot alloc a major number");
+        pr_err("OTP Cannot alloc a major number");
         return -1;
     }
     major = MAJOR(dev);
@@ -260,7 +265,7 @@ static int __init otp_init(void)
     cdev_init(&otp_cdev, &otp_fops);
     if (cdev_add(&otp_cdev, dev, 1) < 0) {
         unregister_chrdev_region(dev, 1);
-        pr_err("Impossible d'ajouter le cdev");
+        pr_err("OTP Impossible d'ajouter le cdev");
         return -1;
     }
 
@@ -289,5 +294,5 @@ module_init(otp_init);
 module_exit(otp_exit);
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Epitech");
+MODULE_AUTHOR("victor");
 MODULE_DESCRIPTION("Module Kernel OTP");
