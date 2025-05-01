@@ -1,5 +1,5 @@
 #include "otp_module.h"
-#include "passwords_list.h"
+#include "password_list.h"
 
 // Convertit le temps (64 octes) en 8 octes
 static void formate_time(uint64_t value, uint8_t *buffer) {
@@ -79,7 +79,7 @@ static int generate_otp(char *otp_code)
 
     kfree(desc);
     crypto_free_shash(tfm);
-    pr_info("OTP Generated OTP: %s", otp_code);
+    pr_info("OTP Generated OTP: %s\n", otp_code);
 
     return 0;
 }

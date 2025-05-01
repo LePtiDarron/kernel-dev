@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define DEVICE "/dev/otp0"
+#define DEVICE "/dev/otp"
 #define OTP_LEN 6
 
 int read_device(char *buffer)

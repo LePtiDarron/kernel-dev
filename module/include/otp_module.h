@@ -9,7 +9,7 @@
 #include <linux/time.h>
 #include <crypto/hash.h>
 
-#define DEVICE_NAME "otp0"
+#define DEVICE_NAME "otp"
 #define PASSWORD_LEN 16
 #define KEY_LEN 64
 #define OTP_LEN 6

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/ioctl.h>
 
-#define DEVICE "/dev/otp0"
+#define DEVICE "/dev/otp"
 
 void print_help(void)
 {

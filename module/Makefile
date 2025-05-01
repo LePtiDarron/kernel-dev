@@ -1,6 +1,6 @@
 obj-m := module_otp.o
 
-module_otp-objs := src/otp_module.o src/otp_read.o src/otp_write.o
+module_otp-objs := src/otp_module.o src/otp_read.o src/otp_write.o src/password_list.o
 
 KDIR := /lib/modules/$(shell uname -r)/build
 

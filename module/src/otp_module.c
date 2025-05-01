@@ -1,8 +1,6 @@
 #include "otp_module.h"
 #include "password_list.h"
 
-static LIST_HEAD(passwords);
-
 static int default_method = 0;
 module_param(default_method, int, 0444);
 MODULE_PARM_DESC(default_method, "Default method: 0=OTP, 1=PASSWORDS");
@@ -64,7 +62,7 @@ static int __init otp_init(void)
         return -1;
     }
 
-    pr_info("OTP Module loaded: /dev/otp0 available.\n");
+    pr_info("OTP Module loaded: /dev/otp available.\n");
     return 0;
 }
 

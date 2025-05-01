@@ -16,6 +16,7 @@ typedef struct password_node {
 
 void password_list_init(struct list_head *head);
 int password_list_add(struct list_head *head, const char *password);
+int password_list_remove(struct list_head *head, const char *password);
 void password_list_clear(struct list_head *head);
 void password_list_print(struct list_head *head);
 

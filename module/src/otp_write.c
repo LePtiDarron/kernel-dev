@@ -1,5 +1,5 @@
 #include "otp_module.h"
-#include "passwords_list.h"
+#include "password_list.h"
 
 ssize_t otp_write(struct file *file, const char __user *buf, size_t len, loff_t *offset)
 {
