@@ -13,6 +13,10 @@ static char *default_key = "default key";
 module_param(default_key, charp, 0444);
 MODULE_PARM_DESC(default_key, "Default secret key");
 
+static int debug = 0;
+module_param(debug, int, 0444);
+MODULE_PARM_DESC(debug, "Debug mode: 0=off, 1=on");
+
 static struct dentry *debugfs_dir;
 
 int major;
@@ -25,7 +29,6 @@ static struct file_operations otp_fops = {
     .read = otp_read,
     .write = otp_write
 };
-
 
 static int passwords_show(struct seq_file *m, void *v)
 {
@@ -60,47 +63,46 @@ static int __init otp_init(void)
     password_list_init(&passwords);
 
     if (alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME) < 0) {
-        pr_err("OTP Cannot alloc a major number\n");
+        pr_err("[OTP]: Error while allocating a major number\n");
         return -1;
     }
     major = MAJOR(dev);
-
     cdev_init(&otp_cdev, &otp_fops);
     if (cdev_add(&otp_cdev, dev, 1) < 0) {
         unregister_chrdev_region(dev, 1);
-        pr_err("OTP Impossible d'ajouter le cdev\n");
+        pr_err("[OTP]: Error while adding the cdev\n");
         return -1;
     }
-
     otp_class = class_create(THIS_MODULE, "otp_class");
     if (IS_ERR(otp_class)) {
         cdev_del(&otp_cdev);
         unregister_chrdev_region(dev, 1);
-        pr_err("OTP Erreur création de la classe\n");
+        pr_err("[OTP]: Error while creating the class\n");
         return PTR_ERR(otp_class);
     }
     if (IS_ERR(device_create(otp_class, NULL, dev, NULL, DEVICE_NAME))) {
         class_destroy(otp_class);
         cdev_del(&otp_cdev);
         unregister_chrdev_region(dev, 1);
-        pr_err("OTP Erreur création du device\n");
+        pr_err("[OTP]: Error while creating the device\n");
         return -1;
     }
-
-    debugfs_dir = debugfs_create_dir("otp", NULL);
-    if (!debugfs_dir) {
-        pr_warn("OTP: Failed to create debugfs directory");
+    if (debug) {
+        debugfs_dir = debugfs_create_dir("otp", NULL);
+        if (!debugfs_dir) {
+            pr_warn("[OTP]: Could not create the debugfs directory\n");
+        } else {
+            debugfs_create_file("passwords", 0444, debugfs_dir, NULL, &passwords_fops);
+            debugfs_create_u32("method", 0666, debugfs_dir, (u32 *)&otp_config.method);
+            debugfs_create_u32("validity", 0666, debugfs_dir, (u32 *)&otp_config.validity);
+            debugfs_create_blob("key", 0444, debugfs_dir, &(struct debugfs_blob_wrapper){
+                .data = otp_config.secret_key,
+                .size = strlen(otp_config.secret_key)
+            });
+        }
     }
 
-    debugfs_create_file("passwords", 0444, debugfs_dir, NULL, &passwords_fops);
-    debugfs_create_u32("method", 0666, debugfs_dir, (u32 *)&otp_config.method);
-    debugfs_create_u32("validity", 0666, debugfs_dir, (u32 *)&otp_config.validity);
-    debugfs_create_blob("key", 0444, debugfs_dir, &(struct debugfs_blob_wrapper){
-        .data = otp_config.secret_key,
-        .size = strlen(otp_config.secret_key)
-    });
-
-    pr_info("OTP Module loaded: device '/dev/otp' created\n");
+    pr_info("[OTP]: Module loaded: device '/dev/otp' created\n");
     return 0;
 }
 
@@ -113,9 +115,10 @@ static void __exit otp_exit(void)
     class_destroy(otp_class);
     cdev_del(&otp_cdev);
     unregister_chrdev_region(dev, 1);
-    debugfs_remove_recursive(debugfs_dir);
-
-    pr_info("OTP Module unloaded.\n");
+    if (debug && debugfs_dir) {
+        debugfs_remove_recursive(debugfs_dir);
+    }
+    pr_info("[OTP]: Module unloaded.\n");
 }
 
 module_init(otp_init);
@@ -123,4 +126,4 @@ module_exit(otp_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("epitech");
-MODULE_DESCRIPTION("Module Kernel OTP avec paramètres default_method et default_validity");
+MODULE_DESCRIPTION("Module Kernel OTP/Passwords");

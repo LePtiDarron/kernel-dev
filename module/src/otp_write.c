@@ -10,11 +10,11 @@ ssize_t otp_write(struct file *file, const char __user *buf, size_t len, loff_t 
     char cmd_method[4] = "SET ";
 
     if (len <= 0) {
-        pr_err("OTP Error (otp write len).");
+        pr_err("[OTP]: Invalid len\n");
         return -EFAULT;
     }
     if (copy_from_user(user_input, buf, len)) {
-        pr_err("OTP Error (otp write copy).");
+        pr_err("[OTP]: Error while copying user's input\n");
         return -EFAULT;
     }
     user_input[len] = '\0';
@@ -28,27 +28,27 @@ ssize_t otp_write(struct file *file, const char __user *buf, size_t len, loff_t 
         }
     } else if (!strncmp(user_input, cmd_change_key, 4)) {
         if (len - 5 > KEY_LEN) {
-            pr_err("OTP Secret key is too long.");
+            pr_err("[OTP]: Secret key is too long\n");
             return -EFAULT;
         }
-        pr_info("OTP SECRET KEY changed to %s", user_input + 4);
+        pr_info("[OTP]: SECRET KEY changed to %s\n", user_input + 4);
         strncpy(otp_config.secret_key, user_input + 4, len - 5);
         otp_config.secret_key[len - 5] = '\0';
     } else if (!strncmp(user_input, cmd_method, 4)) {
         if (user_input[4] == '0') {
-            pr_info("OTP Method set to otp");
+            pr_info("[OTP]: Method set to otp\n");
             otp_config.method = 0;
             return 0;
         }
         if (user_input[4] == '1') {
-            pr_info("OTP Method set to passwords");
+            pr_info("[OTP]: Method set to passwords\n");
             otp_config.method = 1;
             return 0;
         }
-        pr_err("Method not found.");
+        pr_err("[OTP]: Invalid method\n");
         return -EFAULT;
     } else {
-        pr_err("OTP Command not found.");
+        pr_err("[OTP]: Command not found\n");
         return -EFAULT;
     }
 

@@ -22,7 +22,7 @@ static int generate_otp(char *otp_code)
 
     // Vérifier si la clé secrète est vide
     if (strlen(otp_config.secret_key) == 0) {
-        pr_err("OTP Secret key is invalid");
+        pr_err("[OTP]: Secret key is invalid");
         return -EINVAL;
     }
 
@@ -33,14 +33,14 @@ static int generate_otp(char *otp_code)
     // Initialiser Hmac Sha 1
     tfm = crypto_alloc_shash("hmac(sha1)", 0, 0);
     if (IS_ERR(tfm)) {
-        pr_err("OTP Failed to allocate HMAC-SHA1 transform");
+        pr_err("[OTP]: Error while allocating HMAC-SHA1 transform");
         return -1;
     }
 
     // Alloue de la place dans l'espace utilisateur
     desc = kmalloc(sizeof(struct shash_desc) + crypto_shash_descsize(tfm), GFP_KERNEL); // taille de shash_desc + tfm, GFP_KERNEL parce que c'est un noyeau
     if (!desc) {
-        pr_err("OTP Failed to allocate memory for shash_desc");
+        pr_err("[OTP]: Error while allocating memory for shash_desc");
         crypto_free_shash(tfm);
         return -ENOMEM;
     }
@@ -50,7 +50,7 @@ static int generate_otp(char *otp_code)
 
     // Configurer la clé secrète pour HMAC
     if (crypto_shash_setkey(tfm, otp_config.secret_key, strlen(otp_config.secret_key))) {
-        pr_err("OTP Failed to set HMAC key");
+        pr_err("[OTP]: Error while setting HMAC key");
         kfree(desc);
         crypto_free_shash(tfm);
         return -1;
@@ -58,7 +58,7 @@ static int generate_otp(char *otp_code)
 
     // Calculer HMAC(time_step)
     if (crypto_shash_digest(desc, time_bytes, sizeof(time_bytes), hmac_result)) {
-        pr_err("OTP Failed to calculate HMAC digest");
+        pr_err("[OTP]: Error while calculating HMAC digest");
         kfree(desc);
         crypto_free_shash(tfm);
         return -1;
@@ -79,7 +79,7 @@ static int generate_otp(char *otp_code)
 
     kfree(desc);
     crypto_free_shash(tfm);
-    pr_info("OTP Generated OTP: %s\n", otp_code);
+    pr_info("[OTP]: Generated OTP: %s\n", otp_code);
 
     return 0;
 }
