@@ -8,6 +8,8 @@
 #include <linux/device.h>
 #include <linux/time.h>
 #include <crypto/hash.h>
+#include <linux/debugfs.h>
+#include <linux/seq_file.h>
 
 #define DEVICE_NAME "otp"
 #define PASSWORD_LEN 16

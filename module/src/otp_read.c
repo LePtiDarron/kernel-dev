@@ -91,28 +91,25 @@ ssize_t otp_read(struct file *file, char __user *buf, size_t len, loff_t *offset
     char otp_code[OTP_LEN + 1];
     size_t buffer_len = 0;
 
-    if (*offset > 0)
+    if (*offset > 0) {
         return 0;
+    }
 
     if (otp_config.method == 0) {
-        // Générer et envoyer l'OTP
-        if (generate_otp(otp_code))
+        if (generate_otp(otp_code)) {
             return -EFAULT;
+        }
         otp_code[OTP_LEN] = '\0';
-        if (copy_to_user(buf, otp_code, OTP_LEN + 1)) 
+        if (copy_to_user(buf, otp_code, OTP_LEN + 1)) {
             return -EFAULT;
+        }
         *offset += OTP_LEN;
         return OTP_LEN;
     } else {
-        // Envoyer la liste des mots de passes
         password_node_t *entry;
         list_for_each_entry(entry, &passwords, list) {
             buffer_len += strlen(entry->password) + 1;
             passwords_buffer = krealloc(passwords_buffer, buffer_len, GFP_KERNEL);
-            if (!passwords_buffer) {
-                pr_err("OTP Error: Failed to allocate memory for passwords.");
-                return -ENOMEM;
-            }
             strcat(passwords_buffer, entry->password);
             strcat(passwords_buffer, "\n");
         }

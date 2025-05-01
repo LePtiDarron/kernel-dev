@@ -13,6 +13,8 @@ static char *default_key = "default key";
 module_param(default_key, charp, 0444);
 MODULE_PARM_DESC(default_key, "Default secret key");
 
+static struct dentry *debugfs_dir;
+
 int major;
 struct cdev otp_cdev;
 struct class *otp_class;
@@ -22,6 +24,29 @@ static struct file_operations otp_fops = {
     .owner = THIS_MODULE,
     .read = otp_read,
     .write = otp_write
+};
+
+
+static int passwords_show(struct seq_file *m, void *v)
+{
+    password_node_t *node;
+    list_for_each_entry(node, &passwords, list) {
+        seq_printf(m, "%s\n", node->password);
+    }
+    return 0;
+}
+
+static int passwords_open(struct inode *inode, struct file *file)
+{
+    return single_open(file, passwords_show, NULL);
+}
+
+static const struct file_operations passwords_fops = {
+    .owner = THIS_MODULE,
+    .open = passwords_open,
+    .read = seq_read,
+    .llseek = seq_lseek,
+    .release = single_release,
 };
 
 static int __init otp_init(void)
@@ -62,7 +87,20 @@ static int __init otp_init(void)
         return -1;
     }
 
-    pr_info("OTP Module loaded: /dev/otp available.\n");
+    debugfs_dir = debugfs_create_dir("otp", NULL);
+    if (!debugfs_dir) {
+        pr_warn("OTP: Failed to create debugfs directory");
+    }
+
+    debugfs_create_file("passwords", 0444, debugfs_dir, NULL, &passwords_fops);
+    debugfs_create_u32("method", 0666, debugfs_dir, (u32 *)&otp_config.method);
+    debugfs_create_u32("validity", 0666, debugfs_dir, (u32 *)&otp_config.validity);
+    debugfs_create_blob("key", 0444, debugfs_dir, &(struct debugfs_blob_wrapper){
+        .data = otp_config.secret_key,
+        .size = strlen(otp_config.secret_key)
+    });
+
+    pr_info("OTP Module loaded: device '/dev/otp' created\n");
     return 0;
 }
 
@@ -75,6 +113,7 @@ static void __exit otp_exit(void)
     class_destroy(otp_class);
     cdev_del(&otp_cdev);
     unregister_chrdev_region(dev, 1);
+    debugfs_remove_recursive(debugfs_dir);
 
     pr_info("OTP Module unloaded.\n");
 }
