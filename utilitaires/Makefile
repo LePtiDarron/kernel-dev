@@ -1,17 +1,17 @@
-all:
-	make -C client
-	make -C config
+CC = gcc
+CFLAGS = -Wall -Wextra -O2
+
+all: otp_client otp_config
+
+otp_client: otp_client.c
+	$(CC) $(CFLAGS) -o otp_client otp_client.c
+
+otp_config: otp_config.c
+	$(CC) $(CFLAGS) -o otp_config otp_config.c
 
 clean:
-	make -C client clean
-	make -C config clean
+	rm -f otp_client otp_config
 
-fclean:
-	make -C client fclean
-	make -C config fclean
+re:	clean all
 
-re:
-	make -C client re
-	make -C config re
-
-.PHONY: all clean fclean re
+.PHONY:	clean all otp_config otp_client

@@ -1,1 +1,1 @@
-sudo insmod otp_module.ko
+sudo insmod module_otp.ko

@@ -1,1 +1,1 @@
-sudo rmmod otp_module.ko
+sudo rmmod module_otp.ko

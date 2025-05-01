@@ -1,0 +1,1 @@
+cmd_/home/victor/kernel-dev/module/module_otp.mod := printf '%s\n'   src/otp_module.o src/otp_read.o src/otp_write.o | awk '!x[$$0]++ { print("/home/victor/kernel-dev/module/"$$0) }' > /home/victor/kernel-dev/module/module_otp.mod

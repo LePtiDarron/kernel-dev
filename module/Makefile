@@ -1,16 +1,18 @@
-NAME			=	otp_module
+obj-m := module_otp.o
 
-KERNEL_DIR		=	/lib/modules/$(shell uname -r)/build
+module_otp-objs := src/otp_module.o src/otp_read.o src/otp_write.o
 
-SRC				:=	src/$(NAME)
+KDIR := /lib/modules/$(shell uname -r)/build
 
-obj-m			:=	$(NAME).o
+PWD := $(shell pwd)
+
+EXTRA_CFLAGS="-I$(PWD)/include"
 
 all:
-	make -C $(KERNEL_DIR) M=$(PWD) modules
+	$(MAKE) -C $(KDIR) M=$(PWD) EXTRA_CFLAGS="-I$(PWD)/include" modules
 
 clean:
-	make -C $(KERNEL_DIR) M=$(PWD) clean
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
 
 re:	clean all
 
