@@ -1,4 +1,7 @@
 #include "otp_module.h"
+#include "password_list.h"
+
+static LIST_HEAD(passwords);
 
 static int default_method = 0;
 module_param(default_method, int, 0444);
@@ -8,9 +11,9 @@ static int default_validity = 30;
 module_param(default_validity, int, 0444);
 MODULE_PARM_DESC(default_validity, "Default OTP validity (s)");
 
-static char[KEY_LEN] default_key = "secretkey";
-module_param(default_key, char*, 0444);
-MODULE_PARM_DESC(default_key, "Default secret key for OTP");
+static char *default_key = "default key";
+module_param(default_key, charp, 0444);
+MODULE_PARM_DESC(default_key, "Default secret key");
 
 int major;
 struct cdev otp_cdev;
@@ -29,8 +32,10 @@ static int __init otp_init(void)
 
     otp_config.method = default_method;
     otp_config.validity = default_validity;
-    strcpy(default_key, otp_config.secret_key);
-    
+    strncpy(otp_config.secret_key, default_key, sizeof(otp_config.secret_key) - 1);
+    otp_config.secret_key[sizeof(otp_config.secret_key) - 1] = '\0';
+    password_list_init(&passwords);
+
     if (alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME) < 0) {
         pr_err("OTP Cannot alloc a major number\n");
         return -1;
@@ -67,6 +72,7 @@ static void __exit otp_exit(void)
 {
     dev_t dev = MKDEV(major, 0);
 
+    password_list_clear(&passwords);
     device_destroy(otp_class, dev);
     class_destroy(otp_class);
     cdev_del(&otp_cdev);
@@ -79,5 +85,5 @@ module_init(otp_init);
 module_exit(otp_exit);
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("victor");
+MODULE_AUTHOR("epitech");
 MODULE_DESCRIPTION("Module Kernel OTP avec paramètres default_method et default_validity");

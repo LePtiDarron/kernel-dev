@@ -1,4 +1,5 @@
 #include "otp_module.h"
+#include "passwords_list.h"
 
 // Convertit le temps (64 octes) en 8 octes
 static void formate_time(uint64_t value, uint8_t *buffer) {
@@ -86,8 +87,9 @@ static int generate_otp(char *otp_code)
 // Fonction de lecture du device (afficher OTP ou mots de passe)
 ssize_t otp_read(struct file *file, char __user *buf, size_t len, loff_t *offset)
 {
-    char passwords[700] = "\0";
+    char *passwords_buffer = NULL;
     char otp_code[OTP_LEN + 1];
+    size_t buffer_len = 0;
 
     if (*offset > 0)
         return 0;
@@ -102,14 +104,24 @@ ssize_t otp_read(struct file *file, char __user *buf, size_t len, loff_t *offset
         *offset += OTP_LEN;
         return OTP_LEN;
     } else {
-        // afficher les mot de passe
-        for (int i = 0; i < MAX_PASSWORDS; i++) {
-            if (otp_config.passwords[i][0] == '\0') break;
-            strcat(passwords, otp_config.passwords[i]);
+        // Envoyer la liste des mots de passes
+        password_node_t *entry;
+        list_for_each_entry(entry, &passwords, list) {
+            buffer_len += strlen(entry->password) + 1;
+            passwords_buffer = krealloc(passwords_buffer, buffer_len, GFP_KERNEL);
+            if (!passwords_buffer) {
+                pr_err("OTP Error: Failed to allocate memory for passwords.");
+                return -ENOMEM;
+            }
+            strcat(passwords_buffer, entry->password);
+            strcat(passwords_buffer, "\n");
         }
-        *offset += strlen(passwords);
-        if (copy_to_user(buf, passwords, strlen(passwords))) 
+        if (copy_to_user(buf, passwords_buffer, buffer_len)) {
+            kfree(passwords_buffer);
             return -EFAULT;
-        return strlen(passwords);
+        }
+        *offset += buffer_len;
+        kfree(passwords_buffer);
+        return buffer_len;
     }
 }

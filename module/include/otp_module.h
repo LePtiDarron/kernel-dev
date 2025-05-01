@@ -10,18 +10,13 @@
 #include <crypto/hash.h>
 
 #define DEVICE_NAME "otp0"
-#define MAX_PASSWORDS 10
 #define PASSWORD_LEN 16
-#define KEY_LEN 32
+#define KEY_LEN 64
 #define OTP_LEN 6
 
-/// OTP CONFIG ///
-
-// Structure stockant la configuration de l'OTP
 typedef struct otp_config_s {
     char secret_key[KEY_LEN];                       // Clé secrète pour OTP basé sur le temps
     int validity;                                   // Durée de validité en secondes
-    char passwords[MAX_PASSWORDS][PASSWORD_LEN];    // Liste de mots de passe
     int method;                                     // 0=OTP   1=PASSWORDS
 } otp_config_t;
 
