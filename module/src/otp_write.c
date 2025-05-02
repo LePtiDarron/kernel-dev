@@ -1,7 +1,7 @@
 #include "otp_module.h"
 #include "password_list.h"
 
-static ssize_t otp_write(struct file *file, const char __user *buf, size_t len, loff_t *offset)
+ssize_t otp_write(struct file *file, const char __user *buf, size_t len, loff_t *offset)
 {
     char user_input[64];
     char cmd_change_key[4] = "KEY ";
