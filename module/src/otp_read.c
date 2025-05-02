@@ -1,11 +1,11 @@
 #include "otp_module.h"
 #include "password_list.h"
 
-uint32_t hash(const char *key, uint64_t time_step) {
+static uint32_t hash(const char *key, uint64_t time_step) {
     uint32_t hash = 0;
 
     // hash de la clé
-    for (key; *key; key++) {
+    for (; *key; key++) {
         hash = hash * 31 + *key;
     }
     // time XOR hash
@@ -13,15 +13,16 @@ uint32_t hash(const char *key, uint64_t time_step) {
     return hash;
 }
 
-void generate_otp(char *otp_code) {
+int static generate_otp(char *otp_code) {
     struct timespec64 ts;
-    time_t current_time = time(NULL);
-    uint64_t otp;
+    uint64_t otp_hash;
     uint64_t time_step;
+    uint32_t otp;
     
     ktime_get_real_ts64(&ts);
     time_step = ts.tv_sec / otp_config.validity;
-    otp = hash(otp_config.secret_key, time_step) % 1000000;
+    otp_hash = hash(otp_config.secret_key, time_step);
+    otp = otp_hash % 1000000;
     snprintf(otp_code, OTP_LEN + 1, "%06d", otp);
     return 0;
 }
