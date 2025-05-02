@@ -16,10 +16,10 @@ uint32_t simple_hash(const char *key, uint64_t time_step) {
 void generate_simple_otp(char *otp_code) {
     time_t current_time = time(NULL);
     uint64_t time_step = current_time / otp_config.validity;
-    uint32_t hash = simple_hash(SECRET_KEY, time_step);
+    uint32_t hash = simple_hash(otp_config.secret_key, time_step);
     int otp = hash % 1000000; /// 6 chiffres
 
-    snprintf(otp_code, OTP_LENGTH + 1, "%06d", otp);
+    snprintf(otp_code, OTP_LEN + 1, "%06d", otp);
 }
 
 // Fonction de lecture du device (afficher OTP ou mots de passe)
