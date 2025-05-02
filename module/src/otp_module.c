@@ -18,6 +18,7 @@ module_param(debug, int, 0444);
 MODULE_PARM_DESC(debug, "Debug mode: 0=off, 1=on");
 
 static struct dentry *debugfs_dir;
+static struct debugfs_blob_wrapper *key_blob;
 
 int major;
 struct cdev otp_cdev;
@@ -95,10 +96,14 @@ static int __init otp_init(void)
             debugfs_create_file("passwords", 0444, debugfs_dir, NULL, &passwords_fops);
             debugfs_create_u32("method", 0666, debugfs_dir, (u32 *)&otp_config.method);
             debugfs_create_u32("validity", 0666, debugfs_dir, (u32 *)&otp_config.validity);
-            debugfs_create_blob("key", 0444, debugfs_dir, &(struct debugfs_blob_wrapper){
-                .data = otp_config.secret_key,
-                .size = strlen(otp_config.secret_key)
-            });
+            key_blob = kmalloc(sizeof(struct debugfs_blob_wrapper), GFP_KERNEL);
+            if (!key_blob) {
+                pr_err("[OTP]: Failed to allocate memory for key_blob\n");
+                return -ENOMEM;
+            }
+            key_blob->data = otp_config.secret_key;
+            key_blob->size = strlen(otp_config.secret_key);
+            debugfs_create_blob("key", 0444, debugfs_dir, key_blob);
         }
     }
 
@@ -117,6 +122,9 @@ static void __exit otp_exit(void)
     unregister_chrdev_region(dev, 1);
     if (debug && debugfs_dir) {
         debugfs_remove_recursive(debugfs_dir);
+    }
+    if (key_blob) {
+        kfree(key_blob);
     }
     pr_info("[OTP]: Module unloaded.\n");
 }
