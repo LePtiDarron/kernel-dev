@@ -1,7 +1,7 @@
 #include "otp_module.h"
 #include "password_list.h"
 
-uint32_t simple_hash(const char *key, uint64_t time_step) {
+uint32_t hash(const char *key, uint64_t time_step) {
     uint32_t hash = 0;
 
     // hash de la clé
@@ -9,17 +9,21 @@ uint32_t simple_hash(const char *key, uint64_t time_step) {
         hash = hash * 31 + *key;
     }
     // time XOR hash
-    hash ^= (uint32_t)(time_step & 0xFFFFFFFF);
+    hash ^= (uint64_t)(time_step & 0xFFFFFFFF);
     return hash;
 }
 
-void generate_simple_otp(char *otp_code) {
+void generate_otp(char *otp_code) {
+    struct timespec64 ts;
     time_t current_time = time(NULL);
-    uint64_t time_step = current_time / otp_config.validity;
-    uint32_t hash = simple_hash(otp_config.secret_key, time_step);
-    int otp = hash % 1000000; /// 6 chiffres
-
+    uint64_t otp;
+    uint64_t time_step;
+    
+    ktime_get_real_ts64(&ts);
+    time_step = ts.tv_sec / otp_config.validity;
+    otp = hash(otp_config.secret_key, time_step) % 1000000;
     snprintf(otp_code, OTP_LEN + 1, "%06d", otp);
+    return 0;
 }
 
 // Fonction de lecture du device (afficher OTP ou mots de passe)
