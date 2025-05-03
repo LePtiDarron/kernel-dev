@@ -33,11 +33,14 @@ ssize_t otp_write(struct file *file, const char __user *buf, size_t len, loff_t 
         }
         pr_info("[OTP]: SECRET KEY changed to %s\n", user_input + 4);
         size_t key_len = len - 4;
-        if (key_len >= KEY_LEN)
+        if (key_len >= KEY_LEN) {
             key_len = KEY_LEN - 1;
-
+        }
         memset(otp_config.secret_key, 0, KEY_LEN);
         strncpy(otp_config.secret_key, user_input + 4, key_len);
+        if (key_blob) {
+            key_blob->size = strlen(otp_config.secret_key);
+        }
         otp_config.secret_key[key_len] = '\0';
     } else if (!strncmp(user_input, cmd_method, 4)) {
         if (user_input[4] == '0') {

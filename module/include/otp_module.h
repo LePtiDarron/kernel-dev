@@ -22,6 +22,7 @@ typedef struct otp_config_s {
     int method;                                     // 0=OTP   1=PASSWORDS
 } otp_config_t;
 
+extern struct debugfs_blob_wrapper *key_blob;
 extern int major;
 extern struct cdev otp_cdev;
 extern struct class *otp_class;

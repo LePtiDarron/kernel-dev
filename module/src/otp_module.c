@@ -18,7 +18,7 @@ module_param(debug, int, 0444);
 MODULE_PARM_DESC(debug, "Debug mode: 0=off, 1=on");
 
 static struct dentry *debugfs_dir;
-static struct debugfs_blob_wrapper *key_blob;
+struct debugfs_blob_wrapper *key_blob;
 
 int major;
 struct cdev otp_cdev;
@@ -94,9 +94,13 @@ static int __init otp_init(void)
         if (!debugfs_dir) {
             pr_warn("[OTP]: Could not create the debugfs directory\n");
         } else {
+            pr_info("[OTP]: Creating debug files\n");
             debugfs_create_file("passwords", 0444, debugfs_dir, NULL, &passwords_fops);
+            pr_info("\t/sys/kernel/debug/otp/passwords\n");
             debugfs_create_u32("method", 0666, debugfs_dir, (u32 *)&otp_config.method);
+            pr_info("\t/sys/kernel/debug/otp/method\n");
             debugfs_create_u32("validity", 0666, debugfs_dir, (u32 *)&otp_config.validity);
+            pr_info("\t/sys/kernel/debug/otp/validity\n");
             key_blob = kmalloc(sizeof(struct debugfs_blob_wrapper), GFP_KERNEL);
             if (!key_blob) {
                 pr_err("[OTP]: Failed to allocate memory for key_blob\n");
@@ -105,6 +109,8 @@ static int __init otp_init(void)
             key_blob->data = otp_config.secret_key;
             key_blob->size = strlen(otp_config.secret_key);
             debugfs_create_blob("key", 0444, debugfs_dir, key_blob);
+            pr_info("\t/sys/kernel/debug/otp/key\n");
+            pr_info("[OTP]: Debug files ready\n");
         }
     }
 
