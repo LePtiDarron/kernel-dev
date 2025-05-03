@@ -34,8 +34,9 @@ static struct file_operations otp_fops = {
 static int passwords_show(struct seq_file *m, void *v)
 {
     password_node_t *node;
+
     list_for_each_entry(node, &passwords, list) {
-        seq_printf(m, "%s\n", node->password);
+        seq_printf(m, "%s", node->password);
     }
     return 0;
 }
