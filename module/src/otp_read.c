@@ -6,7 +6,7 @@ static uint32_t hash(const char *key, uint64_t time_step) {
 
     // hash de la clé
     for (; *key; key++) {
-        hash = hash * 31 + *key;
+        hash = hash * 97 + *key;
     }
     // time XOR hash
     hash ^= (uint64_t)(time_step & 0xFFFFFFFF);
